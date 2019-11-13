@@ -1,0 +1,80 @@
+package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+public class HardwareBase
+{
+    /* Public OpMode members. */
+    public DcMotor left_drive = null; // left drive front
+    public DcMotor right_drive = null; // left drive front
+    public DcMotor right_drive1 = null; // right drive back
+    public DcMotor left_drive1 = null; // right drive back
+    public DcMotor acq1 = null; // Torret
+    public DcMotor acq2 = null; // Torret
+    public Servo hook1 = null; // Hook left
+    public Servo hook2 = null; // Hook right
+    public Servo arm = null; // Capture and Release 
+    public DistanceSensor sensorRange;
+    public DistanceSensor sensorRange2;
+    
+
+    /* local OpMode members. */
+    HardwareMap hwMap           =  null;
+    private ElapsedTime period  = new ElapsedTime();
+
+    /* Constructor */
+    public HardwareBase(){
+
+    }
+
+    /* Initialize standard Hardware interfaces */
+    public void init(HardwareMap ahwMap) {
+        // Save reference to Hardware map
+        hwMap = ahwMap;
+
+        // Define and Initialize Motors
+        left_drive  = hwMap.get(DcMotor.class, "l1");
+        right_drive = hwMap.get(DcMotor.class, "r1");
+        left_drive1 = hwMap.get(DcMotor.class, "l2");
+        right_drive1 = hwMap.get(DcMotor.class, "r2");
+        acq1 = hwMap.get(DcMotor.class, "a1");
+        acq2 = hwMap.get(DcMotor.class, "a2");
+        right_drive.setDirection(DcMotor.Direction.REVERSE);
+        left_drive.setDirection(DcMotor.Direction.FORWARD);
+        right_drive1.setDirection(DcMotor.Direction.FORWARD);
+        left_drive1.setDirection(DcMotor.Direction.REVERSE);
+        acq1.setDirection(DcMotor.Direction.FORWARD);
+        acq2.setDirection(DcMotor.Direction.FORWARD);
+        sensorRange = hwMap.get(DistanceSensor.class, "sensor_range");
+        sensorRange2 = hwMap.get(DistanceSensor.class, "range2");
+        
+
+        // Set all motors to zero power
+        left_drive.setPower(0);
+        right_drive.setPower(0);
+        left_drive1.setPower(0);
+        right_drive1.setPower(0);
+        acq1.setPower(0);
+        acq2.setPower(0);
+
+
+
+        // Set all motors to run without encoders.
+        // May want to use RUN_USING_ENCODERS if encoders are installed.
+        left_drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        right_drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        left_drive1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        right_drive1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        acq1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        acq2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        // Define and initialize ALL installed servos.
+        hook1 = hwMap.get(Servo.class, "h1");
+        hook2 = hwMap.get(Servo.class, "h2");
+        arm = hwMap.get(Servo.class, "arm");
+    }
+}
