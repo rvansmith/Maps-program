@@ -1,0 +1,230 @@
+
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * This file contains an example of an iterative (Non-Linear) "OpMode".
+ * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
+ * The names of OpModes appear on the menu of the FTC Driver Station.
+ * When an selection is made from the menu, the corresponding OpMode
+ * class is instantiated on the Robot Controller and executed.
+ *
+ * Remove a @Disabled the on the next line or two (if present) to add this opmode to the Driver Station OpMode list,
+ * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
+ */
+@TeleOp
+public class TeleOp extends OpMode {
+    /* Declare OpMode members. */
+    HardwareBase robot = new HardwareBase();
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final double HEIGHT_INCREMENT = 100;
+    static final double LIFT_SPEED = 1.0;
+    static final double OPEN    =  0.8;     // Maximum rotational position
+    static final double CLOSE   =  0.6;     // Minimum rotational position
+    static final double UNHOOK    =  1.0;     // Maximum rotational position
+    static final double HOOK   =  0.0;     // Minimum rotational position
+    double  position2 = (UNHOOK - HOOK) / 2; // Start at halfway position
+    double  position = (OPEN + CLOSE) / 2; // Start at halfway position
+
+    @Override
+    public void init() {
+        telemetry.addData("Status", "Initialized");
+
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
+     */
+    @Override
+    public void init_loop() {
+    }
+
+    /*
+     * Code to run ONCE when the driver hits PLAY
+     */
+    @Override
+    public void start() {
+        robot.acq1.setMode(DcMotor.RunMode.RESET_ENCODERS);
+        robot.acq2.setMode(DcMotor.RunMode.RESET_ENCODERS);
+
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
+     */
+    @Override
+    public void loop() {
+        ///////////////////////////////////////////////////////////////////
+           ////                                                           ////
+           ////                        Drive Code                         ////
+           ////                                                           ////
+           ///////////////////////////////////////////////////////////////////
+           double y = gamepad1.left_stick_y;
+           double x = gamepad1.left_stick_x;
+           double z = 0;
+            if(gamepad1.left_stick_x != 0)
+                 z = (y/ x);
+
+            // Setup a variable for each drive wheel to save power level for telemetry
+            if( z != 0)
+            {
+                robot.right_drive.setPower(scale((y-x)));
+                robot.right_drive1.setPower(scale((y+x)));
+                robot.left_drive.setPower(scale((y+x)));
+                robot.left_drive1.setPower(scale((y-x)));
+            }
+            robot.right_drive.setPower(scale((y-x-z)));
+            robot.right_drive1.setPower(scale((y+x-z)));
+            robot.left_drive.setPower(scale((y+x+z)));
+            robot.left_drive1.setPower(scale((y-x+z)));
+
+
+            //More Complex motions and manuvers
+            if(gamepad1.right_stick_y != 0 )
+            { 
+                
+                if(gamepad1.right_stick_y < 0)
+                {
+                    robot.right_drive.setPower(scale((-y)));
+                    robot.right_drive1.setPower(0);
+                    robot.left_drive.setPower(scale((y)));
+                    robot.left_drive1.setPower(0);
+                }
+                if(gamepad1.right_stick_y > 0)
+                {
+                    robot.right_drive.setPower(0);
+                    robot.right_drive1.setPower(scale((-y)));
+                    robot.left_drive.setPower(0);
+                    robot.left_drive1.setPower(scale((y)));
+                }
+            }
+            if(gamepad1.right_stick_x != 0 && gamepad1.right_stick_x == 0)
+            { 
+                robot.right_drive.setDirection(DcMotor.Direction.REVERSE);
+                robot.left_drive.setDirection(DcMotor.Direction.REVERSE);
+                robot.right_drive1.setDirection(DcMotor.Direction.FORWARD);
+                robot.left_drive1.setDirection(DcMotor.Direction.FORWARD);
+                
+                robot.right_drive.setPower(scale((y-x-z)));
+                robot.right_drive1.setPower(scale((y+x-z)));
+                robot.left_drive.setPower(scale((y+x+z)));
+                robot.left_drive1.setPower(scale((y-x+z)));
+            }
+            
+            
+            ///////////////////////////////////////////////////////////////////
+            ////                                                           ////
+            ////              Acquisition System program                   ////
+            ////                                                           ////
+            ///////////////////////////////////////////////////////////////////
+            double extendArm;
+            double rotate;
+            
+            // extendArm = Range.clip(gamepad2.right_stick_x, -1, 1);
+            // rotate = Range.clip(gamepad2.left_stick_y, -1, 1);
+
+            if(gamepad2.x)
+            {
+                int newHeight = robot.acq1.getCurrentPosition();
+      
+                newHeight += HEIGHT_INCREMENT;
+      
+                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            
+                robot.acq1.setTargetPosition(newHeight);
+      
+                robot.acq1.setPower(LIFT_SPEED);
+            }
+            else if(gamepad2.y && robot.acq1.getCurrentPosition() > 0)
+            {
+                int newHeight = robot.acq1.getCurrentPosition();
+      
+                newHeight -= HEIGHT_INCREMENT;
+      
+                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            
+                robot.acq1.setTargetPosition(newHeight);
+      
+                robot.acq1.setPower(LIFT_SPEED);
+            }
+            robot.acq1.setPower(0);
+            
+      
+            // robot.acq1.setPower(extendArm);
+            // robot.acq2.setPower(rotate);
+            
+            // if(robot.acq2.getCurrentPosition() -1500)
+            // { 
+            //     robot.acq2.setPower(-rotate);
+            // }
+            
+            // Open the acquistion system
+            if(gamepad2.left_bumper  ) {
+                // Keep stepping up until we hit the max value.
+                position += INCREMENT ;
+                if (position >= OPEN ) {
+                    position = OPEN;
+                }
+            }
+            // secure the block
+            else if(gamepad2.right_bumper ){ 
+            // Keep stepping down until we hit the min value.
+                position -= INCREMENT ;
+                if (position <= CLOSE ) {
+                    position = CLOSE;
+
+                }
+            }
+            
+            robot.arm.setPosition(position);
+            
+            telemetry.addData("Current Position of Rotation", + robot.acq2.getCurrentPosition());
+            telemetry.addData("Current Position of Extension", + robot.acq1.getCurrentPosition() );
+            telemetry.update();
+            
+            
+            
+            // ///////////////////////////////////////////////////////////////////
+            // ////                                                           ////
+            // ////                Foundation Hooks program                   ////
+            // ////                                                           ////
+            // ///////////////////////////////////////////////////////////////////
+        
+            // Open the acquistion system
+            if (gamepad2.b) {
+                    position2 = UNHOOK;
+            }
+            // secure the block
+            else if(gamepad2.a ){ 
+                position2 = HOOK ;
+            }
+            
+            robot.hook1.setPosition(position2);
+            robot.hook2.setPosition(position2);
+    }
+    public double scale(double n)
+    {
+      return n;
+    }
+    public void limitforExtension( double power )
+    {
+      
+    }
+
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
+    @Override
+    public void stop() {
+
+    }
+}
