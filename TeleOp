@@ -34,10 +34,10 @@ public class TeleOp extends OpMode {
     static final double HOOK   =  0.0;     // Minimum rotational position
     double  position2 = (UNHOOK - HOOK) / 2; // Start at halfway position
     double  position = (OPEN + CLOSE) / 2; // Start at halfway position
-    // I didn't see where these booleans were defined?
-    // RCVS
     boolean x2Pressed = false;
     boolean x2Held = false;
+    boolean y2Pressed = false;
+    boolean y2Held = false;
 
     @Override
     public void init() {
@@ -66,7 +66,7 @@ public class TeleOp extends OpMode {
      */
     @Override
     public void loop() {
-        ///////////////////////////////////////////////////////////////////
+           ///////////////////////////////////////////////////////////////////
            ////                                                           ////
            ////                        Drive Code                         ////
            ////                                                           ////
@@ -77,7 +77,7 @@ public class TeleOp extends OpMode {
            // I wouldn't compare against strictly 0, a lot of times the joysticks have small non-zero values
            // when you aren't pressing them.  Use some small value and abs.  So: if(Math.abs(gamepad1.left_stick_x) > 0.05)
            // RCVS
-            if(gamepad1.left_stick_x != 0)
+            if(Math.abs(gamepad1.left_stick_x) > 0.02)
                  z = (y/ x);
 
             // Setup a variable for each drive wheel to save power level for telemetry
@@ -97,17 +97,18 @@ public class TeleOp extends OpMode {
             //More Complex motions and manuvers
             // Same comment above about using 0, check all your joystick usages.
             // RCVS
-            if(gamepad1.right_stick_y != 0 )
+            if(Math.abs(gamepad1.right_stick_y) > 0.02 )
             { 
                 
-                if(gamepad1.right_stick_y < 0)
+                if(gamepad1.right_stick_y < 0.02)
                 {
                     robot.right_drive.setPower(scale((-y)));
                     robot.right_drive1.setPower(0);
                     robot.left_drive.setPower(scale((y)));
                     robot.left_drive1.setPower(0);
                 }
-                if(gamepad1.right_stick_y > 0)
+                if(gamepad1.right_stick_y > 0.02
+                )
                 {
                     robot.right_drive.setPower(0);
                     robot.right_drive1.setPower(scale((-y)));
@@ -115,7 +116,7 @@ public class TeleOp extends OpMode {
                     robot.left_drive1.setPower(scale((y)));
                 }
             }
-            if(gamepad1.right_stick_x != 0 && gamepad1.right_stick_x == 0)
+            if(Math.abs(gamepad1.right_stick_x) > 0.02 && Math.abs(gamepad1.right_stick_x) < 0.02)
             { 
                 robot.right_drive.setDirection(DcMotor.Direction.REVERSE);
                 robot.left_drive.setDirection(DcMotor.Direction.REVERSE);
@@ -134,25 +135,16 @@ public class TeleOp extends OpMode {
             ////              Acquisition System program                   ////
             ////                                                           ////
             ///////////////////////////////////////////////////////////////////
-            double extendArm;
-            double rotate;
             
-            // extendArm = Range.clip(gamepad2.right_stick_x, -1, 1);
-            // rotate = Range.clip(gamepad2.left_stick_y, -1, 1);
 
-            // I didn't try to follow your toggle logic, but I think this is about the simplest
-            // RCVS
-            x2Pressed = gamepad2.x;
-            // If x2 was pressed, but not held, meaning this is the first time
-            // we have seen that it is pressed.
-            if(x2Pressed && !x2Held)
-            {
+             x2Pressed = gamepad2.x;
+            // If x2 was pressed, but not held
+            if(x2Pressed && !x2Held) {
                 x2Held = true;
                 int newHeight = robot.acq1.getCurrentPosition();
           
                 newHeight += HEIGHT_INCREMENT;
-                // I think the error you were getting is setting mode RUN_TO_POSITION without a target position.
-                // Changing the call order here should fix that.
+
                 robot.acq1.setTargetPosition(newHeight);
                 robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
           
@@ -166,56 +158,25 @@ public class TeleOp extends OpMode {
             }
 
 
-//            if(gamepad2.x)
-//            {
-//                x2Pressed = !x2Pressed;
-//                if(x2Pressed)
-//                    x2Held = !x2Held;
-//            }
+            y2Pressed = gamepad2.y;
             
-//            if(x2Held)
-//            {
-//                int newHeight = robot.acq1.getCurrentPosition();
-          
-//                newHeight += HEIGHT_INCREMENT;
-          
-//                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                
-//                robot.acq1.setTargetPosition(newHeight);
-          
-//                robot.acq1.setPower(LIFT_SPEED);
-//            }
-            
-//            x2Held = false;
-            
-            if(gamepad2.y)
-            {
-                y2Pressed = !y2Pressed;
-                if(y2Pressed)
-                    y2Held = !y2Held;
-            }
-            
-            if(y2Held)
-            {
+            if(y2Pressed && !y2Held) {
                 int newHeight = robot.acq1.getCurrentPosition();
-      
-                newHeight -= HEIGHT_INCREMENT;
-      
-                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            
+          
+                newHeight += HEIGHT_INCREMENT;
+          
                 robot.acq1.setTargetPosition(newHeight);
-      
+                
+                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                       
                 robot.acq1.setPower(LIFT_SPEED);
+            } else if(!y2Pressed) {
+                y2Held = false;
             }
             
-      
-            // robot.acq1.setPower(extendArm);
-            // robot.acq2.setPower(rotate);
-            
-            // if(robot.acq2.getCurrentPosition() -1500)
-            // { 
-            //     robot.acq2.setPower(-rotate);
-            // }
+            telemetry.addData("Current Position of Rotation", + robot.acq2.getCurrentPosition());
+            telemetry.addData("Current Position of Extension", + robot.acq1.getCurrentPosition() );
+            telemetry.update();
             
             // Open the acquistion system
             if(gamepad2.left_bumper  ) {
@@ -236,12 +197,6 @@ public class TeleOp extends OpMode {
             }
             
             robot.arm.setPosition(position);
-            
-            telemetry.addData("Current Position of Rotation", + robot.acq2.getCurrentPosition());
-            telemetry.addData("Current Position of Extension", + robot.acq1.getCurrentPosition() );
-            telemetry.update();
-            
-            
             
             // ///////////////////////////////////////////////////////////////////
             // ////                                                           ////
