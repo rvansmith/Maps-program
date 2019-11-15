@@ -38,7 +38,8 @@ public class TeleOp extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-
+        robot.acq1.setMode(DcMotor.RunMode.RESET_ENCODERS);
+        robot.acq2.setMode(DcMotor.RunMode.RESET_ENCODERS);
     }
 
     /*
@@ -53,8 +54,6 @@ public class TeleOp extends OpMode {
      */
     @Override
     public void start() {
-        robot.acq1.setMode(DcMotor.RunMode.RESET_ENCODERS);
-        robot.acq2.setMode(DcMotor.RunMode.RESET_ENCODERS);
 
     }
 
@@ -134,17 +133,34 @@ public class TeleOp extends OpMode {
 
             if(gamepad2.x)
             {
-                int newHeight = robot.acq1.getCurrentPosition();
-      
-                newHeight += HEIGHT_INCREMENT;
-      
-                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                x2Pressed = !x2Pressed;
+                if(x2Pressed)
+                    x2Held = !x2Held;
+            }
             
+            if(x2Held)
+            {
+                int newHeight = robot.acq1.getCurrentPosition();
+          
+                newHeight += HEIGHT_INCREMENT;
+          
+                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                
                 robot.acq1.setTargetPosition(newHeight);
-      
+          
                 robot.acq1.setPower(LIFT_SPEED);
             }
-            else if(gamepad2.y && robot.acq1.getCurrentPosition() > 0)
+            
+            x2Held = false;
+            
+            if(gamepad2.y)
+            {
+                y2Pressed = !y2Pressed;
+                if(y2Pressed)
+                    y2Held = !y2Held;
+            }
+            
+            if(y2Held)
             {
                 int newHeight = robot.acq1.getCurrentPosition();
       
@@ -156,7 +172,6 @@ public class TeleOp extends OpMode {
       
                 robot.acq1.setPower(LIFT_SPEED);
             }
-            robot.acq1.setPower(0);
             
       
             // robot.acq1.setPower(extendArm);
