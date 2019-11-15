@@ -34,6 +34,10 @@ public class TeleOp extends OpMode {
     static final double HOOK   =  0.0;     // Minimum rotational position
     double  position2 = (UNHOOK - HOOK) / 2; // Start at halfway position
     double  position = (OPEN + CLOSE) / 2; // Start at halfway position
+    // I didn't see where these booleans were defined?
+    // RCVS
+    boolean x2Pressed = false;
+    boolean x2Held = false;
 
     @Override
     public void init() {
@@ -70,6 +74,9 @@ public class TeleOp extends OpMode {
            double y = gamepad1.left_stick_y;
            double x = gamepad1.left_stick_x;
            double z = 0;
+           // I wouldn't compare against strictly 0, a lot of times the joysticks have small non-zero values
+           // when you aren't pressing them.  Use some small value and abs.  So: if(Math.abs(gamepad1.left_stick_x) > 0.05)
+           // RCVS
             if(gamepad1.left_stick_x != 0)
                  z = (y/ x);
 
@@ -88,6 +95,8 @@ public class TeleOp extends OpMode {
 
 
             //More Complex motions and manuvers
+            // Same comment above about using 0, check all your joystick usages.
+            // RCVS
             if(gamepad1.right_stick_y != 0 )
             { 
                 
@@ -131,27 +140,53 @@ public class TeleOp extends OpMode {
             // extendArm = Range.clip(gamepad2.right_stick_x, -1, 1);
             // rotate = Range.clip(gamepad2.left_stick_y, -1, 1);
 
-            if(gamepad2.x)
+            // I didn't try to follow your toggle logic, but I think this is about the simplest
+            // RCVS
+            x2Pressed = gamepad2.x;
+            // If x2 was pressed, but not held, meaning this is the first time
+            // we have seen that it is pressed.
+            if(x2Pressed && !x2Held)
             {
-                x2Pressed = !x2Pressed;
-                if(x2Pressed)
-                    x2Held = !x2Held;
-            }
-            
-            if(x2Held)
-            {
+                x2Held = true;
                 int newHeight = robot.acq1.getCurrentPosition();
           
                 newHeight += HEIGHT_INCREMENT;
-          
-                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                
+                // I think the error you were getting is setting mode RUN_TO_POSITION without a target position.
+                // Changing the call order here should fix that.
                 robot.acq1.setTargetPosition(newHeight);
+                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
           
                 robot.acq1.setPower(LIFT_SPEED);
+
+            } else if(!x2Pressed) {
+                // This happens if the button is not being pressed at all, which resets that
+                // we are holding it so the next time it is pressed it will trigger the action
+                // again.
+                x2Held = false;
             }
+
+
+//            if(gamepad2.x)
+//            {
+//                x2Pressed = !x2Pressed;
+//                if(x2Pressed)
+//                    x2Held = !x2Held;
+//            }
             
-            x2Held = false;
+//            if(x2Held)
+//            {
+//                int newHeight = robot.acq1.getCurrentPosition();
+          
+//                newHeight += HEIGHT_INCREMENT;
+          
+//                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                
+//                robot.acq1.setTargetPosition(newHeight);
+          
+//                robot.acq1.setPower(LIFT_SPEED);
+//            }
+            
+//            x2Held = false;
             
             if(gamepad2.y)
             {
