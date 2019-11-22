@@ -1,12 +1,11 @@
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,18 +20,20 @@ import java.util.Date;
  * Remove a @Disabled the on the next line or two (if present) to add this opmode to the Driver Station OpMode list,
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
-@TeleOp
-public class TeleOp extends OpMode {
+@TeleOp(name="TeleOp", group="Linear Opmode")
+public class Test2 extends OpMode {
     /* Declare OpMode members. */
     HardwareBase robot = new HardwareBase();
+    private ElapsedTime runtime = new ElapsedTime();
     static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
-    static final double HEIGHT_INCREMENT = 100;
+    static final double HEIGHT_INCREMENT = 500;
     static final double LIFT_SPEED = 1.0;
     static final double OPEN    =  0.8;     // Maximum rotational position
     static final double CLOSE   =  0.6;     // Minimum rotational position
     static final double UNHOOK    =  1.0;     // Maximum rotational position
     static final double HOOK   =  0.0;     // Minimum rotational position
     double  position2 = (UNHOOK - HOOK) / 2; // Start at halfway position
+    double position3 = (UNHOOK - HOOK) / 2;
     double  position = (OPEN + CLOSE) / 2; // Start at halfway position
     boolean x2Pressed = false;
     boolean x2Held = false;
@@ -42,8 +43,11 @@ public class TeleOp extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
-        robot.acq1.setMode(DcMotor.RunMode.RESET_ENCODERS);
+        
+        robot.init(hardwareMap);
         robot.acq2.setMode(DcMotor.RunMode.RESET_ENCODERS);
+        //robot.acq1.setMode(DcMotor.RunMode.RESET_ENCODERS);
+        telemetry.addData("Status", "Initialized");
     }
 
     /*
@@ -58,7 +62,7 @@ public class TeleOp extends OpMode {
      */
     @Override
     public void start() {
-
+        runtime.reset();
     }
 
     /*
@@ -77,10 +81,10 @@ public class TeleOp extends OpMode {
            // I wouldn't compare against strictly 0, a lot of times the joysticks have small non-zero values
            // when you aren't pressing them.  Use some small value and abs.  So: if(Math.abs(gamepad1.left_stick_x) > 0.05)
            // RCVS
-            if(Math.abs(gamepad1.left_stick_x) > 0.02)
+            if(Math.abs(gamepad1.left_stick_x) > 0.002)
                  z = (y/ x);
 
-            // Setup a variable for each drive wheel to save power level for telemetry
+            //Setup a variable for each drive wheel to save power level for telemetry
             if( z != 0)
             {
                 robot.right_drive.setPower(scale((y-x)));
@@ -93,41 +97,6 @@ public class TeleOp extends OpMode {
             robot.left_drive.setPower(scale((y+x+z)));
             robot.left_drive1.setPower(scale((y-x+z)));
 
-
-            //More Complex motions and manuvers
-            // Same comment above about using 0, check all your joystick usages.
-            // RCVS
-            if(Math.abs(gamepad1.right_stick_y) > 0.02 )
-            { 
-                
-                if(gamepad1.right_stick_y < 0.02)
-                {
-                    robot.right_drive.setPower(scale((-y)));
-                    robot.right_drive1.setPower(0);
-                    robot.left_drive.setPower(scale((y)));
-                    robot.left_drive1.setPower(0);
-                }
-                if(gamepad1.right_stick_y > 0.02
-                )
-                {
-                    robot.right_drive.setPower(0);
-                    robot.right_drive1.setPower(scale((-y)));
-                    robot.left_drive.setPower(0);
-                    robot.left_drive1.setPower(scale((y)));
-                }
-            }
-            if(Math.abs(gamepad1.right_stick_x) > 0.02 && Math.abs(gamepad1.right_stick_x) < 0.02)
-            { 
-                robot.right_drive.setDirection(DcMotor.Direction.REVERSE);
-                robot.left_drive.setDirection(DcMotor.Direction.REVERSE);
-                robot.right_drive1.setDirection(DcMotor.Direction.FORWARD);
-                robot.left_drive1.setDirection(DcMotor.Direction.FORWARD);
-                
-                robot.right_drive.setPower(scale((y-x-z)));
-                robot.right_drive1.setPower(scale((y+x-z)));
-                robot.left_drive.setPower(scale((y+x+z)));
-                robot.left_drive1.setPower(scale((y-x+z)));
-            }
             
             
             ///////////////////////////////////////////////////////////////////
@@ -141,14 +110,14 @@ public class TeleOp extends OpMode {
             // If x2 was pressed, but not held
             if(x2Pressed && !x2Held) {
                 x2Held = true;
-                int newHeight = robot.acq1.getCurrentPosition();
+                int newHeight = robot.acq2.getCurrentPosition();
           
                 newHeight += HEIGHT_INCREMENT;
 
-                robot.acq1.setTargetPosition(newHeight);
-                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.acq2.setTargetPosition(newHeight);
+                robot.acq2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
           
-                robot.acq1.setPower(LIFT_SPEED);
+                robot.acq2.setPower(LIFT_SPEED);
 
             } else if(!x2Pressed) {
                 // This happens if the button is not being pressed at all, which resets that
@@ -161,20 +130,47 @@ public class TeleOp extends OpMode {
             y2Pressed = gamepad2.y;
             
             if(y2Pressed && !y2Held) {
-                int newHeight = robot.acq1.getCurrentPosition();
-          
-                newHeight += HEIGHT_INCREMENT;
-          
-                robot.acq1.setTargetPosition(newHeight);
-                
-                robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                       
-                robot.acq1.setPower(LIFT_SPEED);
+                int newHeight = robot.acq2.getCurrentPosition();
+                if( newHeight > 5 ) {
+                   newHeight -= HEIGHT_INCREMENT;
+
+                   robot.acq2.setTargetPosition(newHeight);
+                   robot.acq2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                   robot.acq2.setPower(LIFT_SPEED);
+                }
+                else if(newHeight <= 5) {
+                   robot.acq2.setTargetPosition(newHeight);
+                   robot.acq2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                   robot.acq2.setPower(0);
+                }
             } else if(!y2Pressed) {
                 y2Held = false;
             }
             
             telemetry.addData("Current Position of Rotation", + robot.acq2.getCurrentPosition());
+             boolean turn = false;
+             
+             robot.acq1.setPower(gamepad2.left_stick_x);
+            
+            if(robot.acq2.getCurrentPosition() > 2000 ) {
+                turn = !turn;
+            }
+            
+            if( Math.abs(gamepad2.left_stick_x) > 0.02 && turn) {
+                 if(gamepad2.left_stick_x > 0.02){
+                   robot.acq1.setTargetPosition(2000);
+                   robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                   robot.acq1.setPower(1);
+                 } else if(gamepad2.left_stick_x < 0.02){
+                   robot.acq1.setTargetPosition(100);
+                   robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                   robot.acq1.setPower(1);
+             } else if( Math.abs(gamepad2.left_stick_x) > 0.02 && !turn )
+                   robot.acq1.setTargetPosition(100);
+                   robot.acq1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                   robot.acq1.setPower(1);
+             }
+
             telemetry.addData("Current Position of Extension", + robot.acq1.getCurrentPosition() );
             telemetry.update();
             
@@ -206,15 +202,17 @@ public class TeleOp extends OpMode {
         
             // Open the acquistion system
             if (gamepad2.b) {
-                    position2 = UNHOOK;
+                position2 = UNHOOK;
+                position3 = HOOK;
             }
             // secure the block
             else if(gamepad2.a ){ 
-                position2 = HOOK ;
+                position2 = 0.5;
+                position3 = 0.5;
             }
             
             robot.hook1.setPosition(position2);
-            robot.hook2.setPosition(position2);
+            robot.hook2.setPosition(position3);
     }
     public double scale(double n)
     {
