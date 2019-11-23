@@ -40,6 +40,10 @@ public class OmniTeleOpDrive extends OpMode {
     // Set these if you want a slow mode for precision work
     private double speedMultiplier = MAX_SPEED;
     private double spinMultiplier = MAX_SPIN;
+    private double lowSpeed = 0.3;
+    private double lowspin = 0.3;
+    private boolean bumpPressed = false;
+    private boolean bumpHeld = false;
 
     @Override
     public void start()
@@ -75,7 +79,15 @@ public class OmniTeleOpDrive extends OpMode {
         }
 
         robot.drive(speedMultiplier * xPower, speedMultiplier * yPower, spinMultiplier * spin, driverAngle);
-
+        
+        bumpPressed = gamepad1.right_bumper;
+        if(bumpPressed && !bumpHeld) {
+            robot.drive(lowSpin * xPower, lowSpin * yPower, lowspin * spin, driverAngle);
+        }
+        
+        else if( !bumpPressed ) {
+            bumpHeld = true;
+        }        
 
         telemetry.addData("Y Power: ", yPower);
         telemetry.addData("X Power: ", xPower);
