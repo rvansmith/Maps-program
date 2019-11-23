@@ -1,4 +1,12 @@
 package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.hardware.bosch.BNO055IMU;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -8,14 +16,20 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HardwareBase
 {
     /* Public OpMode members. */
+    
+    // Wheel objects
     public DcMotor left_drive = null; // left drive front
     public DcMotor right_drive = null; // left drive front
     public DcMotor right_drive1 = null; // right drive back
     public DcMotor left_drive1 = null; // right drive back
-    public DcMotor acq1 = null; // Torret
-    public DcMotor acq2 = null; // Torret
+        
+    // Foundation objects
     public Servo hook1 = null; // Hook left
     public Servo hook2 = null; // Hook right
+    
+    // Aquisition objects
+    public DcMotor acq1 = null; // Torret
+    public DcMotor acq2 = null; // Torret
     public Servo arm = null; // Capture and Release 
     public DistanceSensor sensorRange;
     public DistanceSensor sensorRange2;
@@ -29,6 +43,7 @@ public class HardwareBase
     public HardwareBase(){
 
     }
+    public initIMU(
 
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
