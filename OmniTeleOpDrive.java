@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Mapsprogram;
 
 import android.graphics.Color;
 
@@ -40,6 +40,10 @@ public class OmniTeleOpDrive extends OpMode {
     // Set these if you want a slow mode for precision work
     private double speedMultiplier = MAX_SPEED;
     private double spinMultiplier = MAX_SPIN;
+    private double lowSpeed = 0.3;
+    private double lowSpin = 0.3;
+    private boolean bumpPressed = false;
+    private boolean bumpHeld = false;
 
     @Override
     public void start()
@@ -74,7 +78,21 @@ public class OmniTeleOpDrive extends OpMode {
             spin = 0.0;
         }
 
-        robot.drive(speedMultiplier * xPower, speedMultiplier * yPower, spinMultiplier * spin, driverAngle);
+        if(bumpPressed && !bumpHeld) {
+            bumpHeld = true;
+            // Check what speed we currently are.
+            if(speedMultiplier == MAX_SPEED) {
+                speedMultiplier = lowSpeed;
+                spinMultiplier = lowSpin;
+            } else {
+                speedMultiplier = MAX_SPEED;
+                spinMultiplier = MAX_SPIN;
+            }
+        }
+        else if( !bumpPressed ) {
+            bumpHeld = false;
+        }
+        robot.drive(speedMultiplier * xPower, speedMultiplier * yPower, spinMultiplier * spin, driverAngle);        bumpPressed = gamepad1.right_bumper;
 
 
         telemetry.addData("Y Power: ", yPower);
