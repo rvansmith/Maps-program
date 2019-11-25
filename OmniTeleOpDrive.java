@@ -15,7 +15,7 @@ import static java.lang.Math.toDegrees;
  * Created by 12090 STEM Punk
  */
 
-@TeleOp(name="Omni: TeleOpDrive", group ="TeleOp")
+@TeleOp(name="Omni: TeleOpDriveMaps", group ="TeleOp")
 public class OmniTeleOpDrive extends OpMode {
     public HardwareOmnibotDrive robot = new HardwareOmnibotDrive();
 
@@ -24,6 +24,8 @@ public class OmniTeleOpDrive extends OpMode {
         telemetry.addLine("Calling robot.init");
         updateTelemetry(telemetry);
         robot.init(hardwareMap);
+        // RCVS This tells the Rev hub to not use the motor encoders to control the motors.
+        robot.disableDriveEncoders();
         telemetry.addLine("Ready");
         updateTelemetry(telemetry);
     }
@@ -62,6 +64,9 @@ public class OmniTeleOpDrive extends OpMode {
         yPower = -gamepad1.left_stick_y;
         xPower = gamepad1.left_stick_x;
         spin = gamepad1.right_stick_x;
+
+        // RCVS you should do your joystick reads up top
+        bumpPressed = gamepad1.right_bumper;
         gyroAngle = robot.readIMU();
 
 
@@ -92,8 +97,7 @@ public class OmniTeleOpDrive extends OpMode {
         else if( !bumpPressed ) {
             bumpHeld = false;
         }
-        robot.drive(speedMultiplier * xPower, speedMultiplier * yPower, spinMultiplier * spin, driverAngle);        bumpPressed = gamepad1.right_bumper;
-
+        robot.drive(speedMultiplier * xPower, speedMultiplier * yPower, spinMultiplier * spin, driverAngle);
 
         telemetry.addData("Y Power: ", yPower);
         telemetry.addData("X Power: ", xPower);

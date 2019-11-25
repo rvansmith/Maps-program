@@ -29,6 +29,10 @@ public class HardwareOmnibotDrive
 
     // Robot Controller Config Strings
     public final static String IMU = "imu";
+//    public final static String FRONT_LEFT_MOTOR = "FrontLeft";
+//    public final static String FRONT_RIGHT_MOTOR = "FrontRight";
+//    public final static String REAR_LEFT_MOTOR = "RearLeft";
+//    public final static String REAR_RIGHT_MOTOR = "RearRight";
     public final static String FRONT_LEFT_MOTOR = "l1";
     public final static String FRONT_RIGHT_MOTOR = "r1";
     public final static String REAR_LEFT_MOTOR = "l2";
